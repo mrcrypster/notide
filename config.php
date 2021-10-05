@@ -8,4 +8,18 @@ $actions = [
   'test' => function($params) {
     return 'Hi from server!';
   },
+  
+  'git push' => function($params) {
+    chdir(PATH . '/' . dirname($params['f']));
+    $cmds = ['git add *', 'git commit --allow-empty-message -m ""', 'git push'];
+    exec(implode(' 2>&1; ', $cmds) . ' 2>&1', $o);
+    return implode("\n", $o);
+  },
+  
+  'git status' => function($params) {
+    chdir(PATH . '/' . dirname($params['f']));
+    $cmds = ['git status'];
+    exec(implode(' 2>&1; ', $cmds) . ' 2>&1', $o);
+    return implode("\n", $o);
+  },
 ];
