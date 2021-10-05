@@ -1,0 +1,322 @@
+<html>
+    <head>
+      <title>Cody</title>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
+      <link rel="stylesheet" href="/ide.css?1">
+    </head>
+    <body>
+      
+      
+      
+      <?php /* Client code editor & navigation app { */ ?>
+        <ul id="files"><?=tree()?></ul>
+        
+        <div id="editor_container">
+          <div id="editor"></div>
+        </div>
+        
+        <div id="search">
+          <input placeholder="Search files...">
+          <ul></ul>
+        </div>
+        
+        <div id="error"></div>
+      <?php /* } */ ?>
+      
+      
+      
+      <?php /* Client code editor & navigation app { */ ?>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"
+                integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg=="
+                crossorigin="anonymous"></script>
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ace.js"
+                integrity="sha256-5Xkhn3k/1rbXB+Q/DX/2RuAtaB4dRRyQvMs83prFjpM="
+                crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.5/ext-modelist.js"
+                integrity="sha256-Eq83mfVraqpouXYtwjYSEvTt6JM7k1VrhsebwRs06AM="
+                crossorigin="anonymous"></script>
+      
+        <script>
+          // init editor with specified settings
+          var editor = null; // global editor variable
+          function init_editor() {
+            editor = ace.edit("editor", {
+              theme: 'ace/theme/monokai',
+              fontFamily: 'Roboto Mono',
+              tabSize: <?=TAB_SIZE?>,
+              useSoftTabs: true,
+              readOnly: true
+            });
+          }
+          
+          // load code for previously selected file (using "#" in address)
+          function init_default_file() {
+            var file = <?=json_encode($default_file)?>;
+            if ( file ) {
+              var file_element = $('i[data-file="' + file + '"]');
+              file_element.click();
+              
+              var parent = file_element[0];
+              while ( parent = $(parent).parent()[0] ) {
+                if ( $(parent).hasClass('dir') ) {
+                  $(parent).children('ul').addClass('open');
+                }
+              }
+            }
+          }
+          
+          // listen to folders and files events
+          function init_tree() {
+            // Folder toggling
+            $(document).on('click', '#files b', function() {
+              $(this).parent().children('ul').toggleClass('open');
+            });
+            
+            $(document).on('click', '#files i', function() {
+              if ( $('#files i.load').length > 0 ) return; // cancel if we're loading a file already
+              if ( $(this).hasClass('edit') ) return; // cancel if this file is loaded already
+              
+              $('#files i.edit').removeClass('edit').parent().find('.save').remove();
+              $(this).addClass('load');
+              
+              load_code();
+            });
+            
+            $(document).on('dblclick', '#files i', function(e) {
+              e.stopPropagation();
+              e.preventDefault();
+              
+              var file = $(this).data('file');
+              if ( confirm('Remove "' + file + '"?') ) {
+                location = location.pathname + '?r=' + file;
+              }
+            });
+          }
+
+	  // latest files block
+	  function init_latest() {
+	    $(document).on('click', '#latest li', function() {
+	      var file = $(this).data('file');
+	      $('#files li i[data-file="' + file + '"]').click();
+	    });
+	  }
+
+	  // actions block
+	  function init_actions() {
+	    $(document).on('click', '#actions li', function() {
+	      var act = $(this);
+	      act.addClass('load');
+	      $('#console').show(); $('#console pre').html('Executing <b>' + act.text() + '</b>...');
+	      fetch('/?a=' + act.text() + '&f=' + $('#files i.edit').data('file'))
+		.then(r => { return r.text(); } )
+		.then(r => { $('#console').show(); $('#console pre').text(r); act.removeClass('load'); } );
+	    });
+	  }
+
+	  function init_console() {
+	    $(document).on('keyup', function(e) {
+	      if ( e.keyCode == 27 ) $('#console').hide();
+	    });
+	  }
+
+          // code search listener
+          function init_search() {
+            $(document).on('keydown', function(e) {
+              if ( (e.ctrlKey || e.metaKey) && e.shiftKey && e.keyCode == 70 && !$('#search').hasClass('on') ) { // listen to "F" key
+                $('#search').addClass('on');
+                $('#search input').focus().select();
+              }
+            });
+            
+            $(document).on('blur', '#search input', function(e) {
+              setTimeout(function() {
+                $('#search').removeClass('on');
+              }, 200);
+            });
+            
+            $(document).on('keydown', '#search input', function(e) {
+              if ( e.keyCode == 13 ) {
+                if ( $('#search ul li.on')[0] ) {
+                  $('#files i[data-file="' + $('#search ul li.on').text() + '"]').click();
+                }
+              }
+              else if ( e.keyCode == 27 ) {
+                $('#search').removeClass('on');
+              }
+            });
+            
+            $(document).on('keyup', '#search input', function(e) {
+              
+              if ( e.keyCode == 40 ) {
+                var next = $('#search ul li.on').next()[0] || $('#search ul li')[0];
+                $('#search ul li.on').removeClass('on');
+                $(next).addClass('on');
+              }
+              else if ( e.keyCode == 38 ) {
+                var next = $('#search ul li.on').prev()[0] || $('#search ul li:last')[0];
+                $('#search ul li.on').removeClass('on');
+                $(next).addClass('on');
+              }
+              else {
+                var q = $(this).val();
+                var possible = [];
+                
+                if ( q != '' ) {
+                  $('#files i').each(function() {
+                    if ( ( possible.length < 10 ) && ($(this).data('file').indexOf(q) >= 0) ) {
+                      possible.push('<li>' + $(this).data('file').replace(q, '<b>' + q + '</b>') + '</li>');
+                    }
+                  });
+                }
+                
+                $('#search ul').html(possible.join(''));
+              }
+            });
+            
+            $(document).on('click', '#search ul li', function() {
+              $('#files i[data-file="' + $(this).text() + '"]').click();
+            });
+          }
+          
+          
+          
+          // load code for currently selected file
+          var change_cb; // global editor code change callback (to disable/enable it)
+          function load_code() {
+            if ( change_cb ) {
+              editor.getSession().off('change', change_cb);
+            }
+            
+            var file = $('#files i.load').data('file');
+            fetch('?f=' + file, {
+            }).then(function(response) {
+              return response.json();
+            }).then(function(data) {
+	      $('#latest li[data-file="' + file + '"]').remove();
+	      $('#latest').prepend('<li data-file="' + file + '">' + file + '</li>');
+	      $('#latest li:nth(4)').remove();
+
+              window.history.pushState({}, file, '?p=' + file);
+              document.title = file;
+              
+              $('#files i.load').removeClass('load').addClass('edit');
+              
+              
+              if ( data.writable && data.editable ) {
+                editor.setValue(data.code, -1);
+                var modelist = ace.require("ace/ext/modelist");
+                var mode = modelist.getModeForPath(file).mode;
+                editor.session.setMode(mode);
+                
+                editor.setReadOnly(false);
+                editor.focus();
+                
+                editor.getSession().setUndoManager(new ace.UndoManager());
+                
+                change_cb = function() {
+                  save_code($('#files i.edit').data('file'), editor.getValue());
+                };
+                editor.getSession().on('change', change_cb);
+              } else {
+                if ( !data.editable ) {
+                  error('"' + file + '" is not editable text file');
+                }
+                else {
+                  error('"' + file + '" is not writable');
+                }
+              }
+            }).catch((message) => {
+              error(message);
+              console.log(message);
+            });
+          }
+          
+          // save code through backend
+          var save_in_progress = false;
+          var queued_save = null;
+          function save_code(file, code) {
+            if ( !file ) return;
+            
+            if ( save_in_progress ) {
+              if ( queued_save ) {
+                clearTimeout(queued_save);
+              }
+              return queued_save = setTimeout(function() { save_code(file, code); }, 25);
+            }
+            
+            save_in_progress = true;
+            var file_element = $('#files i[data-file="' + file + '"]').parent();
+            if ( !file_element.find('.save').length ) {
+              file_element.append('<em class="save"></em>');
+            }
+            file_element.find('.save').text('saving...');
+            fetch('?f=' + file, {
+                method: 'post',
+                body: code
+            }).then(function(response) {
+              return response.json();
+            }).then(function(data) {
+              save_in_progress = false;
+              if ( !data.written ) {
+                error('"' + file + '" code not saved');
+              }
+              else {
+                file_element.find('.save').text('saved');
+              }
+            }).catch((error) => {
+              save_in_progress = false;
+              error(error);
+            });
+          }
+          
+          
+          
+          // error alert
+          function error(message) {
+            $('#error').html( message + '<i>&times;</i>' ).addClass('on');
+          }
+          
+          // error interaction
+          function init_error(startup_error) {
+            $(document).on('click', '#error i', function() {
+              $('#error').removeClass('on');
+            })
+            
+            if ( startup_error ) {
+              error(startup_error);
+            }
+          }
+        
+        
+        
+          // launch app
+          $(document).ready(function() {
+            init_editor();
+            init_tree();
+            init_error(<?=json_encode($error)?>);
+            init_default_file();
+            init_search();
+	    init_latest();
+	    init_actions();
+	    init_console();
+          });
+          
+        </script>
+      <?php /* } */ ?>
+
+
+      <ul id="latest"></ul>
+
+
+      <ul id="actions">
+	<?php foreach ( $actions as $action => $cb ) { ?>
+	  <li><?=$action?></li>
+	<?php } ?>
+      </ul>
+
+      <div id="console" style="display: none;"><pre>...</pre></div>
+    </body>
+  </html>
