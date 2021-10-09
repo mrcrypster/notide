@@ -6,10 +6,11 @@ if ( is_file(__DIR__ . '/config.local.php') ) {
 else {
   define('PATH', realpath('/var/www/somepath'));
 }
+
 define('TAB_SIZE', 2);
 define('EDITABLE_MIME_REG', ['/text\/.+/', '/x-empty/', '/json/', '/xml/']);
 
-$actions = [
+$actions = array_merge([
   'test' => function($params) {
     return 'Hi from server!';
   },
@@ -27,4 +28,4 @@ $actions = [
     exec(implode(' 2>&1; ', $cmds) . ' 2>&1', $o);
     return implode("\n", $o);
   },
-];
+], $actions ?: []);
