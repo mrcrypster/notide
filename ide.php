@@ -33,6 +33,11 @@ if ( $cb = $actions[$_GET['a']] ) {
     $error = 'Please make code directory (' . PATH . ') writable for PHP';
   }
   
+  # search for query in all files
+  if ( $_POST['search'] ) {
+    die(json_encode(search($_POST['search'])));
+  }
+  
   # load or read code for a file (AJAX)
   if ( $_GET['f'] ) {
     $file = PATH . '/' . ltrim($_GET['f'], '/.');
@@ -87,7 +92,7 @@ if ( $cb = $actions[$_GET['a']] ) {
       $error = 'Unable to remove "' . $default_file . '"';
     }
     else {
-      die(header('Location: ' . parse_url($_SERVER['REQUEST_URI'])['path']));
+      die('ok');
     }
   }
 # } file management backend ===
@@ -95,13 +100,36 @@ if ( $cb = $actions[$_GET['a']] ) {
 
 
 # === utilities {
+  function search($q, $dir = null) {
+    if ( !$dir ) $dir = PATH;
+    $list = [];
+    
+    foreach ( glob( $dir . '/*' ) as $file ) {
+      if ( is_dir($file) ) {
+        foreach ( search($q, $file) as $r ) {
+          $list[] = $r;
+        }
+      }
+      else {
+        $code = file_get_contents($file);
+        if ( strpos($code, $q) !== false ) {
+          $name = str_replace($dir . '/', '', $file);
+          $path = str_replace(PATH . '/', '', $file);
+          
+          $list[$path] = trim(str_replace("\n", ' ', substr($code, max(strpos($code, $q) - 5, 0), strlen($q) + 10)));
+        }
+      }
+    }
+      
+    return $list;
+  }
+
   # build html(ul/li) file tree
   function tree($dir = null) {
     if ( !$dir ) $dir = PATH;
     $html = '';
   
     foreach ( glob( $dir . '/*' ) as $file ) {
-      if ( strpos($file, '.phtml.php') > 0 ) continue;
       if ( is_dir($file) ) {
         $tree_html = tree($file);
         if ( $tree_html ) {
