@@ -6,7 +6,8 @@ function init_editor() {
     fontFamily: 'Roboto Mono',
     tabSize: <?=TAB_SIZE?>,
     useSoftTabs: true,
-    readOnly: true
+    readOnly: true,
+    autoScrollEditorIntoView: true
   });
     
   $(document).on('keyup', function() {
