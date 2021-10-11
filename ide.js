@@ -267,7 +267,7 @@ function load_code() {
         var pos_key = 'pos_' + $('#files li .edit').data('file');
         if ( localStorage.getItem(pos_key) ) {
           var pos = JSON.parse( localStorage.getItem(pos_key) )
-          editor.moveCursorTo(pos.row, pos.column);
+          editor.scrollCursorIntoView(pos.row, pos.column, 0.5);
         }
       }
       
