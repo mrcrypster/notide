@@ -269,8 +269,9 @@ function load_code() {
         if ( localStorage.getItem(pos_key) ) {
           var pos = JSON.parse( localStorage.getItem(pos_key) )
           editor.moveCursorTo(pos.row, pos.column, .5);
-          editor.scrollToLine(pos.row, true);
         }
+        
+        editor.scrollToLine(pos.row, true);
       }
       
     } else {
