@@ -12,7 +12,7 @@ define('EDITABLE_MIME_REG', ['/text\/.+/', '/x-empty/', '/json/', '/xml/']);
 
 $actions = array_merge([
   'test' => function($params) {
-    return 'Hi from server!';
+    return 'Hi from server!' . "\n\n" . $params['body'];
   },
   
   'git push' => function($params) {

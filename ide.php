@@ -21,6 +21,7 @@ if ( defined('LOGIN') && defined('PASSWORD') ) {
 
 # actions processing
 if ( $cb = $actions[$_GET['a']] ) {
+  $_REQUEST['body'] = file_get_contents('php://input');
   $res = $cb($_REQUEST);
   echo $res;
   exit;

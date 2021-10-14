@@ -112,13 +112,17 @@ function init_actions() {
     var act = $(this);
     act.addClass('load');
     $('#console').show(); $('#console pre').html('Executing <b>' + act.text() + '</b>...');
-    fetch('/?a=' + act.text() + '&f=' + $('#files i.edit').data('file'))
-  .then(r => { return r.text(); } )
-  .then(r => { $('#console').show(); $('#console pre').text(r); act.removeClass('load'); } );
+    
+    fetch('/?a=' + act.text() + '&f=' + $('#files i.edit').data('file'), {
+      method: 'post',
+      body: editor.getValue()
+    })
+    .then(r => { return r.text(); } )
+    .then(r => { $('#console').show(); $('#console pre').text(r); act.removeClass('load'); } );
   });
-  }
+}
   
-  function init_console() {
+function init_console() {
   $(document).on('keyup', function(e) {
     if ( e.keyCode == 27 ) $('#console').hide();
   });
