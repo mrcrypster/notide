@@ -106,8 +106,8 @@ if ( $cb = $actions[$_GET['a']] ) {
     
     foreach ( glob( $dir . '/*' ) as $file ) {
       if ( is_dir($file) ) {
-        foreach ( search($q, $file) as $r ) {
-          $list[] = $r;
+        foreach ( search($q, $file) as $p => $r ) {
+          $list[$p] = $r;
         }
       }
       else {
