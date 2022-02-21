@@ -1,2 +1,4 @@
 # notide
-Not IDE is a browser-embedded code editor, specifically for prototyping and robust single-person development right in the cloud
+Not IDE is a browser-based code editor.
+Created for editing local files online.
+Early alpha released.

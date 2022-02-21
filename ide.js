@@ -1,5 +1,157 @@
+function execute(data, cb) {
+  fetch('/api.php?client=1&key=' + key, {method: 'post', body: JSON.stringify(data)}).
+  then(function(r) { return r.json(); }).
+  then(function(r) {
+    if ( r.fail ) {
+      error('Error, retrying...');
+      return execute(data, cb);
+    }
+    else {
+      error();
+      cb(r);
+    }
+  });
+}
+
+
+
+function tree() {
+  execute({cmd: 'tree'}, function(r) {
+    var html = '';
+    
+    if ( !r.tree ) {
+      return;
+    }
+    
+    r.tree.forEach(function(el) {
+      html += '<li><i data-file="' + el + '">' + el + '</i></li>';
+    });
+    
+    if (html != document.querySelector('#files').innerHTML) {
+      document.querySelector('#files').innerHTML = html;
+    }
+  });
+}
+
+
+
+function on(eventName, selector, handler) {
+  document.addEventListener(eventName, function(e) {
+    // loop parent nodes from the target to the delegation node
+    for (var target = e.target; target && target != this; target = target.parentNode) {
+        if (target.matches(selector)) {
+            handler.call(target, e);
+            break;
+        }
+    }
+  }, false);
+}
+
+
+
+var change_cb;
+var file;
+var loading = false;
+function listeners() {
+  on('click', '#files li i', function() {
+    if ( loading ) {
+      return;
+    }
+    
+    loading = true;
+    editor.setReadOnly(true);
+    file = null;
+    editor.getSession().off('change');
+    editor.setValue('', -1);
+    
+    document.querySelectorAll('#files li i.load, #files li i.edit').forEach(function(el) {
+      el.className = '';
+    });
+    
+    this.classList.add('load');
+
+    execute({ cmd: 'open', file: this.dataset.file }, function(r) {
+      loading = false;
+      editor.setValue(r.open.code, -1);
+      file = r.open.file;
+      
+      document.querySelector('#files li i[data-file="' + file + '"]').classList.remove('load');
+      document.querySelector('#files li i[data-file="' + file + '"]').classList.add('edit');
+    
+      var modelist = ace.require("ace/ext/modelist");
+      var mode = modelist.getModeForPath(r.open.file).mode;
+      editor.session.setMode(mode);
+      
+      editor.setReadOnly(false);
+      editor.focus();
+      
+      editor.getSession().setUndoManager(new ace.UndoManager());
+      
+      change_cb = function() {
+        if ( !file ) {
+          return;
+        }
+        
+        execute({ cmd: 'save_code', file: file, code: editor.getValue() }, function(r) {
+          console.log(r);
+          console.log('saved');
+        });
+      };
+      
+      editor.getSession().on('change', change_cb);
+    });
+  });
+}
+
+
+
+function error(message) {
+  if ( message ) {
+    document.querySelector('#error').innerHTML = message;
+    document.querySelector('#error').classList.add('on');
+  }
+  else {
+    document.querySelector('#error').classList.remove('on');
+  }
+}
+
+
+
+function init() {
+  editor = ace.edit("editor", {
+    theme: 'ace/theme/monokai',
+    fontFamily: 'Roboto Mono',
+    tabSize: 2,
+    useSoftTabs: true,
+    readOnly: true,
+    autoScrollEditorIntoView: true
+  });
+  
+  tree();
+  listeners();
+}
+
+
+
+init();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // init editor with specified settings
-var editor = null; // global editor variable
+/*var editor = null; // global editor variable
 function init_editor() {
   editor = ace.edit("editor", {
     theme: 'ace/theme/monokai',
@@ -101,30 +253,6 @@ function init_latest() {
       
       next.click();
     }
-  });
-}
-
-
-
-// actions block
-function init_actions() {
-  $(document).on('click', '#actions li', function() {
-    var act = $(this);
-    act.addClass('load');
-    $('#console').show(); $('#console pre').html('Executing <b>' + act.text() + '</b>...');
-    
-    fetch('/?a=' + act.text() + '&f=' + $('#files i.edit').data('file'), {
-      method: 'post',
-      body: editor.getValue()
-    })
-    .then(r => { return r.text(); } )
-    .then(r => { $('#console').show(); $('#console pre').text(r); act.removeClass('load'); } );
-  });
-}
-  
-function init_console() {
-  $(document).on('keyup', function(e) {
-    if ( e.keyCode == 27 ) $('#console').hide();
   });
 }
 
@@ -330,13 +458,6 @@ function save_code(file, code) {
 
 
 
-// error alert
-function error(message) {
-  $('#error').html( message + '<i>&times;</i>' ).addClass('on');
-}
-
-
-
 // error interaction
 function init_error(startup_error) {
   $(document).on('click', '#error i', function() {
@@ -359,4 +480,4 @@ $(document).ready(function() {
   init_latest();
   init_actions();
   init_console();
-});
+});*/

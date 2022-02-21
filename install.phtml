@@ -1,0 +1,50 @@
+<html>
+<head>
+  <title>NotIDE</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
+  <link rel="stylesheet" href="/ide.css?4">
+</head>
+<body>
+  
+  <h1>NotIDE - edit local code online</h1>
+  <div id="public">
+    <p class="description">Edit text files on your servers or local machines online in three simple steps:</p>
+    
+    <p><b>1</b> Login to your machine and go to the dir your file are located in:</p>
+    <pre><code>cd /home/user/my_code</code></pre>
+
+    <p><b>2</b> Launch NotIDE client:</p>
+    <pre><code>python3 <(curl -s https://notide.cc/install)</code></pre>
+
+    <p><b>3</b> Open unique link to edit your files in browser:</p>
+    <pre><code>Let's do not IDE on:
+"/home/duser/my_code"
+
+Point your browser to:
+<strong>notide.cc/4r...I4</strong>
+
+press ctrl+c when finished</code></pre>
+  </div>
+  
+  
+  <p class="foot">
+    Early alpha, updated on Feb 2022<br/>
+    Contribute/feedbacks on <a href="https://github.com/mrcrypster/notide" target="_blank">our github</a>
+  </p>
+  
+  
+  <script>
+    document.querySelectorAll('pre code').forEach(function(el) {
+      el.addEventListener('click', function() {
+        var range = document.createRange();
+        range.selectNode(el);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        
+        navigator.clipboard.writeText(el.innerText);
+      });
+    });
+  </script>
+  
+</body>
+</html>
