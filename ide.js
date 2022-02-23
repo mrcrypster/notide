@@ -8,14 +8,17 @@ function execute(data, cb) {
     }
     else {
       error();
-      cb(r);
+      
+      if ( cb ) {
+        cb(r);
+      }
     }
   });
 }
 
 
 
-function tree() {
+function tree(cb) {
   execute({cmd: 'tree'}, function(r) {
     var html = '';
     
@@ -23,12 +26,36 @@ function tree() {
       return;
     }
     
-    r.tree.forEach(function(el) {
-      html += '<li><i data-file="' + el + '">' + el + '</i></li>';
+    var tree = r.tree.sort();
+    
+    tree.forEach(function(el) {
+      var name = el.substr(1);
+      
+      if ( el.substr(-1) == '/' ) {
+        name = name.slice(0, -1);
+        var pad = (name.match(/\//g) || []).length;
+        if ( pad > 0 ) {
+          name = name.split('/')[pad];
+        }
+        
+        html += '<li class="pad' + pad + ' ' + (pad > 0 ? 'closed' : '') + '"><b data-parent="' + el + '">' + name + '</b></li>';
+      }
+      else {
+        var pad = (name.match(/\//g) || []).length;
+        if ( pad > 0 ) {
+          name = name.split('/')[pad];
+        }
+        
+        html += '<li class="pad' + pad + ' ' + (pad > 0 ? 'closed' : '') + '"><i data-file="' + el + '">' + name + '</i></li>';
+      }
     });
     
     if (html != document.querySelector('#files').innerHTML) {
       document.querySelector('#files').innerHTML = html;
+      
+      if ( cb ) {
+        cb(r);
+      }
     }
   });
 }
@@ -52,10 +79,93 @@ function on(eventName, selector, handler) {
 var change_cb;
 var file;
 var loading = false;
+var save = {};
 function listeners() {
-  on('click', '#files li i', function() {
+  on('keyup', '#new_file', function(e) {
+    if ( e.key == 'Enter' ) {
+      this.readonly = true;
+      execute({ cmd: 'new', file: this.value }, function(r) {
+        document.querySelector('#new_file').readonly = false;
+        
+        tree(function() {
+          document.querySelector('#files i[data-file="' + r.new.file + '"]').click();
+        });
+      });
+    }
+  });  
+  
+  on('click', '#files li b', function() {
+    var dir = this.dataset.parent;
+    var closed = null;
+    
+    document.querySelectorAll('#files i[data-file^="' + dir + '"], #files b[data-parent^="' + dir + '"]').forEach(function(el) {
+      
+      if ( el.dataset.parent == dir ) {
+        return;
+      }
+      
+      var sub_name = el.dataset.file || el.dataset.parent;
+      var sub_name = sub_name.replace(dir, '') || sub_name.replace(dir, '');
+      
+      if ( (sub_name.substr(-1) != '/') && (sub_name.indexOf('/') != -1) ) {
+        return;
+      }
+      
+      if ( closed === null ) {
+        closed = el.parentNode.classList.contains('closed');
+      }
+      
+      if ( closed ) {
+        el.parentNode.classList.remove('closed');
+      }
+      else {
+        el.parentNode.classList.add('closed');
+      }
+    });
+  });
+  
+  on('click', '#files li i', function(e) {
+    if ( e.shiftKey ) {
+      if ( confirm('Delete this file?') ) {
+        execute({cmd: 'del', file: this.dataset.file});
+        this.parentNode.remove();
+      }
+      
+      return;
+    }
+    
+    if ( this.classList.contains('edit') ) {
+      return;
+    }
+    
     if ( loading ) {
       return;
+    }
+    
+    closed = this.parentNode.classList.contains('closed');
+    
+    if ( closed  ) {
+      var parent = this.dataset.file.split('/')
+      parent.pop();
+      parent = parent.join('/') + '/';
+      
+      do {
+        console.log(parent);
+        console.log( document.querySelector('#files b[data-parent="' + parent + '"]') );
+        document.querySelector('#files b[data-parent="' + parent + '"]').click();
+        var parent = parent.split('/')
+        parent.pop();
+        parent.pop();
+        
+        if ( parent ) {
+          parent = parent.join('/') + '/';
+        }
+        
+        if ( parent == '/' ) {
+          break;
+        }
+        
+      } while( parent )
     }
     
     loading = true;
@@ -92,15 +202,35 @@ function listeners() {
           return;
         }
         
-        execute({ cmd: 'save_code', file: file, code: editor.getValue() }, function(r) {
-          console.log(r);
-          console.log('saved');
-        });
+        save[file] = {
+          code: editor.getValue(),
+          update: Date.now()
+        };
+        
+        document.querySelector('#files li i[data-file="' + file + '"]').classList.add('unsaved');
       };
       
       editor.getSession().on('change', change_cb);
     });
   });
+}
+
+
+
+function sync_save() {
+  for ( var file in save ) {
+    if ( save[file].update > Date.now() - 250 ) {
+      continue;
+    }
+    
+    execute({ cmd: 'save_code', file: file, code: save[file].code }, function(r) {
+      document.querySelector('#files li i[data-file="' + r.save_code.file + '"]').classList.remove('unsaved');
+    });
+    
+    delete save[file];
+  }
+  
+  setTimeout(sync_save, 250);
 }
 
 
@@ -129,6 +259,7 @@ function init() {
   
   tree();
   listeners();
+  sync_save();
 }
 
 

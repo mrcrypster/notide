@@ -2,11 +2,12 @@
 <head>
   <title>NotIDE</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
-  <link rel="stylesheet" href="/ide.css?2">
+  <link rel="stylesheet" href="/ide.css?4">
 </head>
 <body>
   
   <ul id="files"></ul>
+  <input id="new_file" placeholder="New file..." />
   
   <div id="editor_container">
     <div id="editor"></div>
@@ -33,8 +34,6 @@
 
   <script>var key = <?=json_encode($key)?>;</script>
   <script><?php include 'ide.js'; ?></script>
-
-  <ul id="latest"></ul>
   
 </body>
 </html>
