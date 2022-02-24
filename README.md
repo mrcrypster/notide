@@ -1,6 +1,6 @@
 # notIDE
 
-![notIDE](/logo.png)
+[![notIDE](/logo.png)](https://notide.cc/)
 
 Browser-based code editor created to edit local or server files online.
 
