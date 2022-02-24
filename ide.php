@@ -7,7 +7,7 @@ if ( strlen($key) == 48 ) {
   include 'ide.phtml';
 }
 else {
-  if ( $key == 'install' ) {
+  if ( $key == 'i' ) {
     header('Content-type: text/plain');
     readfile(__DIR__ . '/notide.py');
   }

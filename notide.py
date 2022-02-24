@@ -100,11 +100,9 @@ key = get_key(dir)
 
 
 # welcome info
-print('  Let\'s do not IDE on:')
-print('  "' + dir + '"')
 print()
-print('  Point your browser to:')
-print('  notide.cc/' + key)
+print('  To edit "' + dir + '" point your browser to:')
+print('  \033[92mnotide.cc/' + key + '\033[0m')
 print()
 print('  press ctrl+c when finished')
 print()
