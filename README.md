@@ -2,7 +2,7 @@
 
 ![notIDE](/logo.png)
 
-Not IDE is a browser-based code editor, created for editing local files online.
+Browser-based code editor created to edit local or server files online.
 
 ## How it works
 Code editor is hosted at [notide.cc](https://notide.cc) with PHP backend.
