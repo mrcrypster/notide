@@ -46,6 +46,10 @@ def code(dir, file):
 def create(dir, file):
   if file[0:1] != '/':
     file = '/' + file
+    
+  dirname = os.path.dirname(dir + file)
+  if not os.path.isdir(dirname):
+    os.makedirs(dirname)
   
   with open(dir + file, 'w') as f:
     f.write('')
@@ -66,21 +70,25 @@ def save_code(dir, file, code):
 
 
 # Talk to server
+handlers = {
+  'tree':      lambda cmd, dir: {'tree': tree( dir )},
+  'open':      lambda cmd, dir: {'open': code( dir, cmd['file'] )},
+  'new':       lambda cmd, dir: {'new': create( dir, cmd['file'] )},
+  'del':       lambda cmd, dir: {'new': remove( dir, cmd['file'] )},
+  'save_code': lambda cmd, dir: {'save_code': save_code( dir, cmd['file'], cmd['code'] )}
+}
+
 def talk():
   while ( True ):
-    cmd = (requests.get('https://notide.cc/api.php?pop=1&key=' + key).json());
+    try:
+      cmd = (requests.get('https://notide.cc/api.php?pop=1&key=' + key, timeout=5).json());
 
-    handlers = {
-      'tree':      lambda cmd, dir: {'tree': tree( dir )},
-      'open':      lambda cmd, dir: {'open': code( dir, cmd['file'] )},
-      'new':       lambda cmd, dir: {'new': create( dir, cmd['file'] )},
-      'del':       lambda cmd, dir: {'new': remove( dir, cmd['file'] )},
-      'save_code': lambda cmd, dir: {'save_code': save_code( dir, cmd['file'], cmd['code'] )}
-    }
-
-    if 'cmd' in cmd:
-      out = json.dumps( handlers[cmd['cmd']](cmd, dir) )
-      x = requests.post('https://notide.cc/api.php?push=1&key=' + key, data = out)
+      if 'cmd' in cmd:
+        out = json.dumps( handlers[cmd['cmd']](cmd, dir) )
+        x = requests.post('https://notide.cc/api.php?push=1&key=' + key, data = out)
+        
+    except Exception as e:
+      time.sleep(1)
 
 
 

@@ -8,7 +8,7 @@ if ( strlen($key) == 48 ) {
 }
 else {
   if ( $key == 'install' ) {
-    header('Content-type: text/plai');
+    header('Content-type: text/plain');
     readfile(__DIR__ . '/notide.py');
   }
   else if ($key) {
