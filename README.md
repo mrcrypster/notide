@@ -10,6 +10,8 @@ It contains [python client](/notide.py) which operates on your local files
 and connects to server API to sync editing.
 
 ## Usage
+Just go to your code dir in terminal and lanuch notIDE client:
+
 ```
 cd /home/user/my_code && python3 <(curl -s https://notide.cc/install)
 ```
