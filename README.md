@@ -9,4 +9,8 @@ It contains [python client](/notide.py) which operates on your local files
 and connects to server API to sync editing.
 
 ## Usage
-Follow [instructions here](https://notide.cc/) to edit your local files online.
+```
+cd /home/user/my_code && python3 <(curl -s https://notide.cc/install)
+```
+
+Also follow [instructions here](https://notide.cc/) to edit your local files online.
