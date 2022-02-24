@@ -1,7 +1,8 @@
-# notide
-Not IDE is a browser-based code editor.
-Created for editing local files online.
-Early alpha released.
+# notIDE
+
+![notIDE](/logo.png)
+
+Not IDE is a browser-based code editor, created for editing local files online.
 
 ## How it works
 Code editor is hosted at [notide.cc](https://notide.cc) with PHP backend.
