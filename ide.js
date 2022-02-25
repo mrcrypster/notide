@@ -19,8 +19,11 @@ function execute(data, cb) {
 
 
 function tree(cb) {
+  document.querySelector('#search button').classList.add('updating');
+  
   execute({cmd: 'tree'}, function(r) {
     var html = '';
+    document.querySelector('#search button').classList.remove('updating');
     
     if ( !r.tree ) {
       return;
@@ -46,7 +49,7 @@ function tree(cb) {
           name = name.split('/')[pad];
         }
         
-        html += '<li class="pad' + pad + ' ' + (pad > 0 ? 'closed' : '') + '"><i data-file="' + el + '">' + name + '</i></li>';
+        html += '<li class="pad' + pad + ' ' + (pad > 0 ? 'closed' : '') + '"><i data-file="' + el + '">' + name + '</i><u></u></li>';
       }
     });
     
@@ -81,11 +84,26 @@ var file;
 var loading = false;
 var save = {};
 function listeners() {
+  document.addEventListener('keydown', function(e) {
+    if ( e.key == 'Shift' ) {
+      document.querySelector('#files').classList.add('alt');
+    }
+  });
+  
+  document.addEventListener('keyup', function(e) {
+    if ( e.key == 'Shift' ) {
+      document.querySelector('#files').classList.remove('alt');
+    }
+  });
+  
   on('keyup', '#new_file', function(e) {
     if ( e.key == 'Enter' ) {
-      this.readonly = true;
+      this.disabled = true;
+      this.classList.add('wait');
       execute({ cmd: 'new', file: this.value }, function(r) {
-        document.querySelector('#new_file').readonly = false;
+        document.querySelector('#new_file').disabled = false;
+        document.querySelector('#new_file').classList.remove('wait');
+        document.querySelector('#new_file').value = '';
         
         tree(function() {
           document.querySelector('#files i[data-file="' + r.new.file + '"]').click();
@@ -94,7 +112,21 @@ function listeners() {
     }
   });  
   
-  on('click', '#files li b', function() {
+  on('click', '#files li b', function(e) {
+    if ( e.shiftKey ) {
+      if ( confirm('Delete this folder?') ) {
+        var folder = this.dataset.parent;
+        execute({cmd: 'delf', folder: folder});
+        this.parentNode.remove();
+        
+        document.querySelectorAll('#files i[data-file^="' + folder + '"], #files b[data-parent^="' + folder + '"]').forEach(function(el) {
+          el.remove();
+        })
+      }
+      
+      return;
+    }
+    
     var dir = this.dataset.parent;
     var closed = null;
     
@@ -124,11 +156,21 @@ function listeners() {
     });
   });
   
+  on('click', '#search button', function() {
+    tree();
+  });
+  
   on('click', '#files li i', function(e) {
     if ( e.shiftKey ) {
       if ( confirm('Delete this file?') ) {
         execute({cmd: 'del', file: this.dataset.file});
         this.parentNode.remove();
+        
+        if ( file == this.dataset.file ) {
+          editor.setReadOnly(true);
+          editor.setvalue('', -1);
+          file = null;
+        }
       }
       
       return;
@@ -142,7 +184,7 @@ function listeners() {
       return;
     }
     
-    closed = this.parentNode.classList.contains('closed');
+    var closed = this.parentNode.classList.contains('closed');
     
     if ( closed  ) {
       var parent = this.dataset.file.split('/')
@@ -210,6 +252,22 @@ function listeners() {
       
       editor.getSession().on('change', change_cb);
     });
+  });
+  
+  on('dblclick', '#files li i', function(e) {
+    var rename = prompt('Rename or move file', this.dataset.file);
+    if ( rename && (rename != this.dataset.file) ) {
+      this.classList.add('load');
+      
+      execute({ cmd: 'move', file: this.dataset.file, new: rename }, function(r) {
+        tree(function() {
+          document.querySelector('#files i[data-file="' + r.move.new + '"]').click();
+        });
+      });
+    }
+    
+    e.stopPropagation();
+    e.preventDefault();
   });
 }
 

@@ -1,4 +1,4 @@
-import sys, os, glob, json, time, requests, string, random
+import sys, os, glob, json, time, requests, string, random, shutil
 
 
 
@@ -56,10 +56,28 @@ def create(dir, file):
     
   return {'file': file}
 
+
 # Remove file by path
 def remove(dir, file):
   os.remove(dir + file)
   return {'file': file}
+
+
+# Remove folder by path
+def remove_dir(dir, folder):
+  shutil.rmtree(dir + folder)
+  return {'folder': folder}
+
+
+# move or rename file 
+def move(dir, file, new):
+  
+  if new[0:1] != '/':
+    new = '/' + new
+    
+  os.rename(dir + file, dir + new)
+  
+  return {'new': new}
 
 
 # Save file by path
@@ -74,10 +92,14 @@ handlers = {
   'tree':      lambda cmd, dir: {'tree': tree( dir )},
   'open':      lambda cmd, dir: {'open': code( dir, cmd['file'] )},
   'new':       lambda cmd, dir: {'new': create( dir, cmd['file'] )},
-  'del':       lambda cmd, dir: {'new': remove( dir, cmd['file'] )},
+  'del':       lambda cmd, dir: {'del': remove( dir, cmd['file'] )},
+  'delf':      lambda cmd, dir: {'delf': remove_dir( dir, cmd['folder'] )},
+  'move':      lambda cmd, dir: {'move': move( dir, cmd['file'], cmd['new'] )},
   'save_code': lambda cmd, dir: {'save_code': save_code( dir, cmd['file'], cmd['code'] )}
 }
 
+
+# main communication process
 def talk():
   while ( True ):
     try:

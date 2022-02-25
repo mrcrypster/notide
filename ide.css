@@ -6,9 +6,9 @@ body                        { margin: 0; border: 0; padding: 0; font-family: 'Ro
 
 
 h1                          { font-size: 196px; font-weight: normal; padding: .5em .5em 0 .5em; margin: 0; text-align: center; background: rgba(0,0,0, 0.9); color: #0074D9; }
-h1 b                        { color: #FFDC00; font-size: 0.8em; }
+h1 b                        { color: #FFDC00; font-size: 0.77em; }
 #public                     { font-family: 'Roboto Mono'; padding: 1em; margin: 0 auto; max-width: 800px; color: #444; }
-#public .description        { font-size: 2em; margin: 0 0 1em 0; line-height: 150%; text-align: center; }
+#public .description        { font-size: 2em; margin: 0 0 1em 0; line-height: 150%; text-align: center; margin: 1em 0; }
 #public pre                 { padding: 1em 1em 2em 2.5em; display: block; border-left: 1px solid rgba(0,0,0,0.1); margin: 0; }
 #public pre:last-child      { border: none; }
 #public pre code            { font-family: 'Roboto Mono'; background: rgba(0,0,0,.75); display: block; padding: 1em; border-radius: 4px; cursor: pointer; font-size: 1.7em; color: #eee; }
@@ -33,11 +33,19 @@ a:hover                     { color: #FF4136; }
                               color: #fff; outline: none; cursor: pointer; }
 #new_file:hover             { border-color: #555; }
 #new_file:focus             { background: #333; border-color: #666; cursor: default; }
+#new_file.wait              { background: url(/load.gif) no-repeat; background-position: 194px 8px; }
 
 
-#search                     { position: fixed; z-index: 1; top: 0; left: 0; width: 250px; background: #202020; border: 0px; }
+#search                     { position: fixed; z-index: 1; top: 0; left: 0; width: 250px; background: #202020; border: 0px; position: relative; }
+#search button              { background: transparent; border: none; color: #fff; padding: 0; margin: 0; cursor: pointer; font-size: 1.5em;
+                              position: absolute; right: 15px; top: 13px; transition: all .25s ease; }
+#search button:hover        { opacity: 0.8; }
+#search button:active       { opacity: 0.5; }
+#search button.updating     { animation: rt 2s infinite; }
 
-#search input               { width: 230px; margin: 10px;
+@keyframes rt               { 100% {transform: rotate(360deg);} }
+
+#search input               { width: 200px; margin: 10px;
                               padding: 5px; box-sizing: border-box; border: 1px solid #444; background: transparent;
                               color: #fff; outline: none; cursor: pointer; }
 
@@ -51,6 +59,13 @@ a:hover                     { color: #FF4136; }
 #files li                   { margin: 3px 0; }
 #files li.pad1              { margin-left: 5px; }
 #files li.pad2              { margin-left: 10px; }
+#files li.pad3              { margin-left: 15px; }
+#files li.pad4              { margin-left: 20px; }
+#files li.pad5              { margin-left: 25px; }
+#files li.pad6              { margin-left: 30px; }
+#files li.pad7              { margin-left: 35px; }
+#files li.pad8              { margin-left: 40px; }
+#files li.pad9              { margin-left: 45px; }
 
 #files li i, #files li b    { font-style: normal; cursor: pointer; border-radius: 4px;
                               padding: 2px 4px; opacity: 0.5; margin-left: -5px; }
@@ -64,6 +79,11 @@ a:hover                     { color: #FF4136; }
 #files li i.load            { background: #666; opacity: 0.25; cursor: default; }
 #files li i.unsaved         { color: #FFDC00; }
 
+#files li i.load + u        { display: inline-block; margin-left: 8px; height: 8px; width: 24px; background: url(/load.gif) no-repeat; content: ' ';
+                              background-size: 12px 4px; background-position: 0px 2px; }
+#files.alt li b:hover,
+#files.alt li i:hover       { background: #FF4136; color: #fff; }
+
 #files li.closed            { display: none; }
 #files.searching li.closed  { display: block; }
 #files.searching
@@ -71,12 +91,15 @@ a:hover                     { color: #FF4136; }
 
 #files .save                { color: #666; font-size: 10px; font-style: normal; margin: 0 0 0 1em; }
 
+
+
 #editor_container           { position: fixed; left: 250px; top: 0; bottom: 0; right: 0; }
 #editor_container #editor   { position: absolute; top: 0; left: 0; bottom: 0; right: 0; }
+#editor .ace_scroller,
+#editor .ace_gutter         { padding: .5em 0; }
+
+
 
 #error                      { position: fixed; right: 2em; top: 2em; background: #FF4136;
                               padding: 1em; color: #fff; display: none; }
 #error.on                   { display: block; }
-#error i                    { margin: 0 0 0 1em; background: #444; cursor: pointer; font-style: normal;
-                              padding: 2px 6px; border-radius: 4px; opacity: 0.75; }
-#error i:hover              { opacity: 1; }
