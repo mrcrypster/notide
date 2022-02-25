@@ -9,7 +9,7 @@ Browser-based code editor created to edit local or server files online.
 cd /path/to/code && python3 <(curl -s https://notide.cc/i)
 ```
 
-Also follow [instructions here](https://notide.cc/) to edit your local files online.
+Also follow [instructions here](https://notide.cc/).
 
 ## How it works
 Code editor is hosted at [notide.cc](https://notide.cc) with [PHP backend](/ide.php).
