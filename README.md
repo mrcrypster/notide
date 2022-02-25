@@ -5,6 +5,7 @@
 Browser-based code editor created to edit local or server files online.
 
 ## Features
+- Autosave while editing
 - Syntax highlight using [ace editor](https://ace.c9.io/)
 - Create new files
 - Move or rename files (`double click` to move/rename)

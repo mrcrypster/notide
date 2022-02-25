@@ -18,6 +18,8 @@ h1 b                        { color: #FFDC00; font-size: 0.77em; }
 #public p                   { margin: 0; }
 
 
+img.demo                    { max-width: 100%; margin: 1em auto; display: block; }
+
 
 a                           { color: #0074D9; }
 a:hover                     { color: #FF4136; }
