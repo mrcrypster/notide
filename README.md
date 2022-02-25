@@ -4,6 +4,14 @@
 
 Browser-based code editor created to edit local or server files online.
 
+## Features
+- Syntax highlight using [ace editor](https://ace.c9.io/)
+- Create new files
+- Move or rename files (`double click` to move/rename)
+- Remove files/folders (`Shift + single click` to remove)
+- Search files by name
+- Python-based client with automatic reconnection
+
 ## Usage
 ```bash
 cd /path/to/code && python3 <(curl -s https://notide.cc/i)
