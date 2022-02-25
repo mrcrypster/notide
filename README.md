@@ -5,9 +5,7 @@
 Browser-based code editor created to edit local or server files online.
 
 ## Usage
-Just go to your code dir in terminal and lanuch notIDE client:
-
-```
+```bash
 cd /path/to/code && python3 <(curl -s https://notide.cc/i)
 ```
 
