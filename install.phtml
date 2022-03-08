@@ -1,31 +1,39 @@
 <html>
 <head>
   <title>notIDE - edit local code online</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Mono">
-  <link rel="stylesheet" href="/ide.css?4">
+  <link rel="stylesheet" href="/ide.css?5">
 </head>
 <body class="public">
   
   <h1>not<b>IDE</b></h1>
+  <p class="description">Edit local or server code online</p>
+  
   <div id="public">
-    <p class="description">Edit code on your servers or local machines online</p>
-    
-    <p><b>1</b> Open terminal and go to the dir your code is in:</p>
+    <p>Open terminal and launch NotIDE client in folder with your code:</p>
     <pre><code>cd /path/to/code && python3 <(curl -s https://notide.cc/i)</code></pre>
 
-    <p><b>2</b> Open generated unique link in your browser:</p>
-    <pre><code>To edit "/path/to/code" point your browser to:
-<strong>notide.cc/qw...0g</strong>
-
-press ctrl+c when finished</code></pre>
-
-  <p><b>3</b> Now edit your files:</p>
+    <p>Open unique link and edit your files in the browser:</p>
   </div>
   
   <img src="/demo.png" class="demo"/>
   
+  <div class="features">
+  <ul>
+    <li>Autosave while editing
+    <li>Syntax highlight using <a href="https://ace.c9.io/">ace editor</a>
+    <li>Create new files
+    <li><code>double click</code> file name to move/rename
+    <li><code>Shift + single click</code> file/dir name to remove
+    <li>Search files by name
+    <li><a href="https://github.com/mrcrypster/notide/blob/main/notide.py">Python-based client</a> with automatic reconnection
+  </ul>
+  </div>
+  
   <p class="foot">
-    We're opensource, contribute and give feedbacks on <a href="https://github.com/mrcrypster/notide" target="_blank">our github</a>
+    We're opensource. Contribute/feedbacks on <a href="https://github.com/mrcrypster/notide" target="_blank">Github</a>.<br/>
+    Created by <a href="https://github.com/mrcrypster">mrcrypster</a> in 2022.
   </p>
   
   

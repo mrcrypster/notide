@@ -5,20 +5,27 @@ body                        { margin: 0; border: 0; padding: 0; font-family: 'Ro
 .public                     { background: #fff; font-family: 'Arial'; }
 
 
-h1                          { font-size: 196px; font-weight: normal; padding: .5em .5em 0 .5em; margin: 0; text-align: center; background: rgba(0,0,0, 0.9); color: #0074D9; }
+h1                          { font-size: 196px; text-shadow: 0 0 25px #666; font-weight: normal; padding: .25em .5em .25em .5em; margin: 0; text-align: center; background: rgba(0,0,0, 0.9); color: #0074D9; }
 h1 b                        { color: #FFDC00; font-size: 0.77em; }
-#public                     { font-family: 'Roboto Mono'; padding: 1em; margin: 0 auto; max-width: 800px; color: #444; }
-#public .description        { font-size: 2em; margin: 0 0 1em 0; line-height: 150%; text-align: center; margin: 1em 0; }
-#public pre                 { padding: 1em 1em 2em 2.5em; display: block; border-left: 1px solid rgba(0,0,0,0.1); margin: 0; }
+.description                { font-size: 4.5vw; margin: -1.12em 0 .25em 0; line-height: 150%; text-align: center; padding: 0 0.25em; font-family: 'Roboto Mono';  font-weight: 100; color: rgba(255,255,255, 0.95); }
+
+#public                     { font-family: 'Roboto Mono'; padding: 0 1em; margin: 0 auto; max-width: 800px; color: #444; }
+#public pre                 { display: block; margin: 1em 0 1.5em 0; }
 #public pre:last-child      { border: none; }
 #public pre code            { font-family: 'Roboto Mono'; background: rgba(0,0,0,.75); display: block; padding: 1em; border-radius: 4px; cursor: pointer; font-size: 1.7em; color: #eee; }
 #public pre code:hover      { opacity: .95; }
 #public pre code strong     { color: #01FF70; }
 #public p b                 { font-size: 1.25em; font-weight: normal; color: rgba(0,0,0,0.25); background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.1); border-radius: 50%; display: inline-block; width: 40px; line-height: 40px; text-align: center; margin-left: -20px; margin-right: 5px; }
-#public p                   { margin: 0; }
+#public p                   { margin: 4em 0 2em 0; font-size: 14px; }
 
 
-img.demo                    { max-width: 100%; margin: 1em auto; display: block; }
+.features                   { max-width: 800px; margin: 0 auto; padding: 1em; font-family: 'Roboto Mono'; font-size: 14px; }
+.features ul                { columns: 2; column-gap: 1em; padding: 0; margin: 2em 0 2em 1.5em; }
+.features ul li             { margin: 0 1em .5em 0; }
+.features code              { background: #eee; font-size: .8em; padding: .25em .5em; border-radius: 5px; }
+
+
+img.demo                    { max-width: 825px; margin: -1em auto 0 auto; display: block; }
 
 
 a                           { color: #0074D9; }
@@ -26,7 +33,7 @@ a:hover                     { color: #FF4136; }
 
 
 
-.foot                       { color: rgba(255,255,255,.5); text-align: center; margin: 0; padding: 1em; line-height: 150%; color: #444; }
+.foot                       { color: rgba(255,255,255,.5); text-align: center; margin: 0; padding: 2em; line-height: 150%; color: #444; }
 
 
 
@@ -105,3 +112,10 @@ a:hover                     { color: #FF4136; }
 #error                      { position: fixed; right: 2em; top: 2em; background: #FF4136;
                               padding: 1em; color: #fff; display: none; }
 #error.on                   { display: block; }
+
+
+
+@media only screen and (max-width: 700px) {
+  h1 { font-size: 96px; }
+  #public pre code { font-size: 1em; overflow: auto; }
+}
