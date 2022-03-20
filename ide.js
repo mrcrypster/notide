@@ -150,6 +150,10 @@ function listeners() {
         return;
       }
       
+      if ( sub_name.split('/').length >= 3 ) {
+        return;
+      }
+      
       if ( closed === null ) {
         closed = el.parentNode.classList.contains('closed');
       }
