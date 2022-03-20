@@ -83,6 +83,7 @@ var change_cb;
 var file;
 var loading = false;
 var save = {};
+var undos = {};
 function listeners() {
   document.addEventListener('keydown', function(e) {
     if ( e.key == 'Shift' ) {
@@ -90,10 +91,16 @@ function listeners() {
     }
   });
   
+  window.addEventListener('blur', function(e) {
+    document.querySelector('#files').classList.remove('alt');
+  });
+  
   document.addEventListener('keyup', function(e) {
     if ( e.key == 'Shift' ) {
       document.querySelector('#files').classList.remove('alt');
     }
+    
+    localStorage.setItem('post' + file, JSON.stringify(editor.getCursorPosition()));
   });
   
   on('keyup', '#new_file', function(e) {
@@ -210,9 +217,11 @@ function listeners() {
     
     loading = true;
     editor.setReadOnly(true);
+    editor.getSession().setUndoManager( new ace.UndoManager() );
     file = null;
     editor.getSession().off('change');
-    editor.setValue('', -1);
+    document.querySelector('#loading').classList.add('on');
+    //editor.setValue('', -1);
     
     document.querySelectorAll('#files li i.load, #files li i.edit').forEach(function(el) {
       el.className = '';
@@ -221,9 +230,17 @@ function listeners() {
     this.classList.add('load');
 
     execute({ cmd: 'open', file: this.dataset.file }, function(r) {
+      document.querySelector('#loading').classList.remove('on');
       loading = false;
       editor.setValue(r.open.code, -1);
       file = r.open.file;
+      location.hash = file;
+      
+      var pos = localStorage.getItem('post' + file);
+      if ( pos ) {
+        pos = JSON.parse(pos);
+        editor.moveCursorTo(pos.row, pos.column);
+      }
       
       document.querySelector('#files li i[data-file="' + file + '"]').classList.remove('load');
       document.querySelector('#files li i[data-file="' + file + '"]').classList.add('edit');
@@ -235,7 +252,11 @@ function listeners() {
       editor.setReadOnly(false);
       editor.focus();
       
-      editor.getSession().setUndoManager(new ace.UndoManager());
+      if ( !undos[file] ) {
+        undos[file] = new ace.UndoManager();
+      }
+      
+      editor.getSession().setUndoManager( undos[file] );
       
       change_cb = function() {
         if ( !file ) {
@@ -273,14 +294,21 @@ function listeners() {
 
 
 
+var saving = false;
 function sync_save() {
   for ( var file in save ) {
+    if ( saving ) {
+      continue;
+    }
+    
     if ( save[file].update > Date.now() - 250 ) {
       continue;
     }
     
+    saving = true;
     execute({ cmd: 'save_code', file: file, code: save[file].code }, function(r) {
       document.querySelector('#files li i[data-file="' + r.save_code.file + '"]').classList.remove('unsaved');
+      saving = false;
     });
     
     delete save[file];
@@ -436,7 +464,9 @@ function init() {
     autoScrollEditorIntoView: true
   });
   
-  tree();
+  tree(function() {
+    document.querySelector('#files i[data-file="' + location.hash.substr(1) + '"]').click();
+  });
   listeners();
   sync_save();
   ping();

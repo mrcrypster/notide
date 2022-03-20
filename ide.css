@@ -5,14 +5,14 @@ body                        { margin: 0; border: 0; padding: 0; font-family: 'Ro
 .public                     { background: #fff; font-family: 'Arial'; }
 
 
-h1                          { font-size: 196px; text-shadow: 0 0 25px #666; font-weight: normal; padding: .25em .5em .25em .5em; margin: 0; text-align: center; background: rgba(0,0,0, 0.9); color: #0074D9; }
-h1 b                        { color: #FFDC00; font-size: 0.77em; }
+h1                          { font-size: 196px; text-shadow: 0 0 10px #000; font-weight: 100; padding: .25em .5em .25em .5em; margin: 0; text-align: center; background: #222; color: #0074D9; }
+h1 b                        { color: #FFDC00; font-size: 0.75em; font-weight: normal }
 .description                { font-size: 4.5vw; margin: -1.12em 0 .25em 0; line-height: 150%; text-align: center; padding: 0 0.25em; font-family: 'Roboto Mono';  font-weight: 100; color: rgba(255,255,255, 0.95); }
 
 #public                     { font-family: 'Roboto Mono'; padding: 0 1em; margin: 0 auto; max-width: 800px; color: #444; }
 #public pre                 { display: block; margin: 1em 0 1.5em 0; }
 #public pre:last-child      { border: none; }
-#public pre code            { font-family: 'Roboto Mono'; background: rgba(0,0,0,.75); display: block; padding: 1em; border-radius: 4px; cursor: pointer; font-size: 1.7em; color: #eee; }
+#public pre code            { font-family: 'Roboto Mono'; background: #282828; display: block; padding: 1.5em; border-radius: 4px; cursor: pointer; font-size: 1.7em; color: #eee; border-left: 1em solid #000; }
 #public pre code:hover      { opacity: .95; }
 #public pre code strong     { color: #01FF70; }
 #public p b                 { font-size: 1.25em; font-weight: normal; color: rgba(0,0,0,0.25); background: rgba(0,0,0,0.01); border: 1px solid rgba(0,0,0,0.1); border-radius: 50%; display: inline-block; width: 40px; line-height: 40px; text-align: center; margin-left: -20px; margin-right: 5px; }
@@ -65,7 +65,7 @@ a:hover                     { color: #FF4136; }
 #files ul                   { margin: 0; padding: 0 0 0 1em; list-style: none; display: none; }
 #files ul.open              { display: block; }
 
-#files li                   { margin: 3px 0; }
+#files li                   { margin: 5px 0; }
 #files li.pad1              { margin-left: 5px; }
 #files li.pad2              { margin-left: 10px; }
 #files li.pad3              { margin-left: 15px; }
@@ -113,6 +113,9 @@ a:hover                     { color: #FF4136; }
                               padding: 1em; color: #fff; display: none; }
 #error.on                   { display: block; }
 
+
+#loading                    { position: fixed; top: 0; left: 250px; bottom: 0; right: 0; opacity: .5; z-index: 1; background: #000; display: none; }
+#loading.on                 { display: block; }
 
 
 @media only screen and (max-width: 700px) {

@@ -8,13 +8,13 @@
 <body class="public">
   
   <h1>not<b>IDE</b></h1>
-  <p class="description">Edit local or server code online</p>
+  <p class="description">edit / local | server / code online</p>
   
   <div id="public">
     <p>Open terminal and launch NotIDE client in folder with your code:</p>
-    <pre><code>cd /path/to/code && python3 <(curl -s https://notide.cc/i)</code></pre>
+    <pre><code>cd /path/to/code && <b>python3 <(curl -s https://notide.cc/i)</b></code></pre>
 
-    <p>Open unique link and edit your files in the browser:</p>
+    <p>Open generated unique link and edit your files in the browser:</p>
   </div>
   
   <img src="/demo.png" class="demo"/>
@@ -32,7 +32,7 @@
   </div>
   
   <p class="foot">
-    We're opensource. Contribute/feedbacks on <a href="https://github.com/mrcrypster/notide" target="_blank">Github</a>.<br/>
+    Opensource. Contribute/feedbacks on <a href="https://github.com/mrcrypster/notide" target="_blank">github</a>.
     Created by <a href="https://github.com/mrcrypster">mrcrypster</a> in 2022.
   </p>
   
@@ -41,7 +41,7 @@
     document.querySelectorAll('pre code').forEach(function(el) {
       el.addEventListener('click', function() {
         var range = document.createRange();
-        range.selectNode(el);
+        range.selectNode(el.querySelector('b'));
         window.getSelection().removeAllRanges();
         window.getSelection().addRange(range);
         
