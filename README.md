@@ -12,6 +12,8 @@ Browser-based code editor created to edit local or server files online.
 - Remove files/folders (`Shift + single click` to remove)
 - Search files by name
 - Python-based client with automatic reconnection
+- Cross-files undo manager
+- Cursor position autosave
 
 ## Usage
 ```bash
