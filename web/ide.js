@@ -1,35 +1,8 @@
-function execute(data, cb) {
-  fetch('/api.php?client=1&key=' + key, {method: 'post', body: JSON.stringify(data)}).
-  then(function(r) { return r.json(); }).
-  then(function(r) {
-    if ( r.fail ) {
-      error('Failed to process "' + r.cmd + '" command, please check client...');
-      return execute(data, cb);
-    }
-    else {
-      error();
-      
-      if ( cb ) {
-        cb(r);
-      }
-    }
-  });
-}
-
-
-
-function tree(cb) {
-  document.querySelector('#search button').classList.add('updating');
-  
-  execute({cmd: 'tree'}, function(r) {
+// Editor-server-client event handlers
+let server_handlers = {
+  tree: function(tree, cb) {
     var html = '';
-    document.querySelector('#search button').classList.remove('updating');
-    
-    if ( !r.tree ) {
-      return;
-    }
-    
-    var tree = r.tree.sort();
+    //var tree = tree.sort();
     
     tree.forEach(function(el) {
       var name = el.substr(1);
@@ -55,12 +28,108 @@ function tree(cb) {
     
     if (html != document.querySelector('#files').innerHTML) {
       document.querySelector('#files').innerHTML = html;
+
+      if ( initial_file ) {
+        if ( document.querySelector('#files i[data-file="' + initial_file + '"]') ) {
+          document.querySelector('#files i[data-file="' + initial_file + '"]').click();
+        }
+        else {
+          location.hash = '';
+        }
+        initial_file = null;
+      }
       
       if ( cb ) {
-        cb(r);
+        cb(tree);
       }
     }
-  });
+  },
+
+  new_file: function(data) {
+    server_handlers.tree(data.tree, function() {
+      document.querySelector('#files i[data-file="' + data.name.file + '"]').click();
+    });
+  },
+
+  error: function(message) {
+    console.log(message);
+    error(message);
+  },
+
+  open: function(data) {
+    document.querySelector('#loading').classList.remove('on');
+    loading = false;
+
+    if ( data.error ) {
+      document.querySelector('#files li i[data-file="' + data.name + '"]').classList.remove('load');
+      return error("Can't read that file, sorry :(");
+    }
+
+    editor.setValue(data.code, -1);
+    file = data.name;
+    location.hash = file;
+    
+    var pos = localStorage.getItem('post' + file);
+    if ( pos ) {
+      pos = JSON.parse(pos);
+      editor.moveCursorTo(pos.row, pos.column);
+    }
+
+    var scroll = localStorage.getItem('scroll' + file);
+    if ( scroll ) {
+      scroll = parseInt(scroll);
+
+      if ( scroll ) {
+        editor.session.setScrollTop(scroll)
+      }
+    }
+    
+    document.querySelector('#files li i[data-file="' + file + '"]').classList.remove('load');
+    document.querySelector('#files li i[data-file="' + file + '"]').classList.add('edit');
+  
+    var modelist = ace.require("ace/ext/modelist");
+    var mode = modelist.getModeForPath(file).mode;
+    editor.session.setMode(mode);
+    
+    editor.setReadOnly(false);
+    editor.focus();
+    
+    if ( !undos[file] ) {
+      undos[file] = new ace.UndoManager();
+    }
+    
+    editor.getSession().setUndoManager( undos[file] );
+    
+    change_cb = function() {
+      if ( !file ) {
+        return;
+      }
+      
+      save[file] = {
+        code: editor.getValue(),
+        update: Date.now()
+      };
+    };
+    
+    editor.getSession().on('change', change_cb);
+  },
+
+  save: function(data) {
+    document.querySelector('#files li i[data-file="' + data.file + '"]').classList.remove('load');
+    saving = false;
+  },
+
+  move: function(data) {
+    server_handlers.tree(data.tree, function() {
+      document.querySelector('#files i[data-file="' + data.new + '"]').click();
+    });
+  },
+
+  upload: function(data) {
+    server_handlers.tree(data.tree, function() {
+      document.querySelector('#files i[data-file="' + file + '"]').click();
+    });
+  }
 }
 
 
@@ -84,6 +153,7 @@ var file;
 var loading = false;
 var save = {};
 var undos = {};
+
 function listeners() {
   document.addEventListener('keydown', function(e) {
     if ( e.key == 'Shift' ) {
@@ -101,29 +171,16 @@ function listeners() {
     }
     
     localStorage.setItem('post' + file, JSON.stringify(editor.getCursorPosition()));
+    localStorage.setItem('scroll' + file, editor.session.getScrollTop());
   });
-  
-  on('keyup', '#new_file', function(e) {
-    if ( e.key == 'Enter' ) {
-      this.disabled = true;
-      this.classList.add('wait');
-      execute({ cmd: 'new', file: this.value }, function(r) {
-        document.querySelector('#new_file').disabled = false;
-        document.querySelector('#new_file').classList.remove('wait');
-        document.querySelector('#new_file').value = '';
-        
-        tree(function() {
-          document.querySelector('#files i[data-file="' + r.new.file + '"]').click();
-        });
-      });
-    }
-  });  
   
   on('click', '#files li b', function(e) {
     if ( e.shiftKey ) {
       if ( confirm('Delete this folder?') ) {
         var folder = this.dataset.parent;
-        execute({cmd: 'delf', folder: folder});
+        ws.send(JSON.stringify({cmd: 'delf', context: {folder: folder}}));
+        wait_ws_answer();
+
         this.parentNode.remove();
         
         document.querySelectorAll('#files i[data-file^="' + folder + '"], #files b[data-parent^="' + folder + '"]').forEach(function(el) {
@@ -136,9 +193,11 @@ function listeners() {
     
     var dir = this.dataset.parent;
     var closed = null;
+
+    //console.log(dir);
+    //console.log( document.querySelectorAll('#files i[data-file^="' + dir + '"], #files b[data-parent^="' + dir + '"]') );
     
     document.querySelectorAll('#files i[data-file^="' + dir + '"], #files b[data-parent^="' + dir + '"]').forEach(function(el) {
-      
       if ( el.dataset.parent == dir ) {
         return;
       }
@@ -146,13 +205,14 @@ function listeners() {
       var sub_name = el.dataset.file || el.dataset.parent;
       var sub_name = sub_name.replace(dir, '') || sub_name.replace(dir, '');
       
-      if ( (sub_name.substr(-1) != '/') && (sub_name.indexOf('/') != -1) ) {
-        return;
-      }
       
-      if ( sub_name.split('/').length >= 3 ) {
+      /*if ( (sub_name.substr(-1) != '/') && (sub_name.indexOf('/') != -1) ) {
         return;
-      }
+      }*/
+      
+      /*if ( sub_name.split('/').length >= 3 ) {
+        return;
+      }*/
       
       if ( closed === null ) {
         closed = el.parentNode.classList.contains('closed');
@@ -166,15 +226,45 @@ function listeners() {
       }
     });
   });
-  
-  on('click', '#search button', function() {
-    tree();
+
+  on('drop', '#files li', function(e) {
+    let container = this;
+    container.classList.add('upload');
+    container.classList.remove('drag');
+    for ( let i = 0; i < e.dataTransfer.files.length; i++ ) {
+      let file = e.dataTransfer.files[i];
+      let file_name = file.name;
+      let fd = new FormData();
+      fd.append("file", file);
+      fetch('/file.php', {method: 'POST', body: fd})
+      .then(response => response.json())
+      .then(function(upload) {
+        let to = container.querySelector('b') ? container.querySelector('b').dataset.parent : container.querySelector('i').dataset.file;
+        ws.send(JSON.stringify({cmd: 'upload', context: {name: file_name, to: to, upload: upload}}));
+        wait_ws_answer();
+        container.classList.remove('upload');
+      });
+    }
+
+    e.preventDefault();
   });
-  
+
+  on('dragover', '#files li', function(e) {
+    this.classList.add('drag');
+    e.preventDefault();
+  });
+
+  on('dragleave', '#files li', function(e) {
+    this.classList.remove('drag');
+    e.preventDefault();
+  });
+
   on('click', '#files li i', function(e) {
     if ( e.shiftKey ) {
       if ( confirm('Delete this file?') ) {
-        execute({cmd: 'del', file: this.dataset.file});
+        ws.send(JSON.stringify({cmd: 'del', context: {file: this.dataset.file}}));
+        wait_ws_answer();
+
         this.parentNode.remove();
         
         if ( file == this.dataset.file ) {
@@ -233,50 +323,8 @@ function listeners() {
     
     this.classList.add('load');
 
-    execute({ cmd: 'open', file: this.dataset.file }, function(r) {
-      document.querySelector('#loading').classList.remove('on');
-      loading = false;
-      editor.setValue(r.open.code, -1);
-      file = r.open.file;
-      location.hash = file;
-      
-      var pos = localStorage.getItem('post' + file);
-      if ( pos ) {
-        pos = JSON.parse(pos);
-        editor.moveCursorTo(pos.row, pos.column);
-      }
-      
-      document.querySelector('#files li i[data-file="' + file + '"]').classList.remove('load');
-      document.querySelector('#files li i[data-file="' + file + '"]').classList.add('edit');
-    
-      var modelist = ace.require("ace/ext/modelist");
-      var mode = modelist.getModeForPath(r.open.file).mode;
-      editor.session.setMode(mode);
-      
-      editor.setReadOnly(false);
-      editor.focus();
-      
-      if ( !undos[file] ) {
-        undos[file] = new ace.UndoManager();
-      }
-      
-      editor.getSession().setUndoManager( undos[file] );
-      
-      change_cb = function() {
-        if ( !file ) {
-          return;
-        }
-        
-        save[file] = {
-          code: editor.getValue(),
-          update: Date.now()
-        };
-        
-        document.querySelector('#files li i[data-file="' + file + '"]').classList.add('unsaved');
-      };
-      
-      editor.getSession().on('change', change_cb);
-    });
+    ws.send(JSON.stringify({cmd: 'open', context: {name: this.dataset.file}}));
+    wait_ws_answer();
   });
   
   on('dblclick', '#files li i', function(e) {
@@ -284,15 +332,31 @@ function listeners() {
     if ( rename && (rename != this.dataset.file) ) {
       this.classList.add('load');
       
-      execute({ cmd: 'move', file: this.dataset.file, new: rename }, function(r) {
-        tree(function() {
-          document.querySelector('#files i[data-file="' + r.move.new + '"]').click();
-        });
-      });
+      ws.send(JSON.stringify({cmd: 'move', context: {file: this.dataset.file, new: rename}}));
+      wait_ws_answer();
     }
     
     e.stopPropagation();
     e.preventDefault();
+  });
+}
+
+
+
+function new_file() {
+  document.querySelector('#search button').addEventListener('click', function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+
+    let prefix = '';
+    if ( file ) {
+      prefix = file.substring(0, file.lastIndexOf('/') + 1);
+    }
+    let name = prompt('New file name:', prefix);
+    if ( name ) {
+      ws.send(JSON.stringify({cmd: 'new', context: {name: name}}));
+      wait_ws_answer();
+    }
   });
 }
 
@@ -309,11 +373,11 @@ function sync_save() {
       continue;
     }
     
+    document.querySelector('#files li i[data-file="' + file + '"]').classList.add('load');
+
     saving = true;
-    execute({ cmd: 'save_code', file: file, code: save[file].code }, function(r) {
-      document.querySelector('#files li i[data-file="' + r.save_code.file + '"]').classList.remove('unsaved');
-      saving = false;
-    });
+    ws.send(JSON.stringify({cmd: 'save', context: {name: file, code: save[file].code}}));
+    wait_ws_answer();
     
     delete save[file];
   }
@@ -339,28 +403,29 @@ function error(message) {
 
 
 
-function ping() {
-  execute({cmd: 'ping'}, function(r) {
-    if ( !r.alive ) {
-      error('Client is offline, waiting for it to be online again...');
-    }
-    else {
-      error();
-    }
-    
-    setTimeout(ping, 5 * 1000);
-  });
-}
-
-
-
 var search_abort = null;
 function search() {
+  document.addEventListener('keydown', function(e) {
+    if ( e.shiftKey && e.ctrlKey && e.keyCode == 70 ) {
+      e.stopPropagation();
+      e.preventDefault();
+
+      document.querySelector('#search > input').focus();
+    }
+  });
+
+  on('keydown', '#search > input', function(e) {
+    if ( e.keyCode == 40 || e.keyCode == 38 ) {
+      e.stopPropagation();
+      e.preventDefault();
+    }
+  });
+
   on('keyup', '#search > input', function(e) {
     if ( e.keyCode == 40 ) {
       if ( !document.querySelector('#files li:not(.not-found) i.hover') ) {
-        if ( document.querySelector('#files li:not(.not-found) i') ) {
-          document.querySelector('#files li:not(.not-found) i:last-child').classList.add('hover');
+        if ( document.querySelector('#files li:not(.not-found):last-child i') ) {
+          document.querySelector('#files li:not(.not-found):last-child i').classList.add('hover');
         }
       }
       else {
@@ -384,8 +449,8 @@ function search() {
     }
     else if ( e.keyCode == 38 ) {
       if ( !document.querySelector('#files li:not(.not-found) i.hover') ) {
-        if ( document.querySelector('#files li:not(.not-found) i') ) {
-          document.querySelector('#files li:not(.not-found) i:last-child').classList.add('hover');
+        if ( document.querySelector('#files li:not(.not-found):last-child i') ) {
+          document.querySelector('#files li:not(.not-found):last-child i').classList.add('hover');
         }
       }
       else {
@@ -442,8 +507,10 @@ function search() {
           }
         });
         
-        if ( document.querySelector('#files li:not(.not-found) i') ) {
-          document.querySelector('#files li:not(.not-found) i:last-child').classList.add('hover');
+        if ( document.querySelector('#files li:not(.not-found) i.edit') ) {
+          document.querySelector('#files li:not(.not-found) i.edit').classList.add('hover');
+        } else if ( document.querySelector('#files li:not(.not-found) i') ) {
+          document.querySelector('#files li:not(.not-found) i').classList.add('hover');
         }
       }
       else {
@@ -458,7 +525,63 @@ function search() {
 
 
 
+// Heath system
+wait_health_to = null;
+function wait_ws_answer() {
+  wait_health_to = setTimeout(function() {
+    error('Local machine takes too long to answer, waiting...');
+  }, 3000);
+}
+
+function got_ws_answer() {
+  if ( wait_health_to ) {
+    error();
+    clearTimeout(wait_health_to);
+  }
+}
+
+
+
+// Init App
+ws = null;
+initial_load = true;
+function init_ws() {
+  ws = new WebSocket('wss://notide.cc:8323/' + key);
+
+  ws.onclose = function(e) {
+    setTimeout(function() { init_ws(); }, 500);
+  };
+
+  ws.onerror = function(e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+
+  ws.onmessage = function (event) {
+    got_ws_answer();
+    let json = JSON.parse(event.data);
+    for ( let k in json ) {
+      if ( server_handlers[k] ) {
+        server_handlers[k](json[k]);
+      }
+    }
+  }
+
+  ws.onopen = function (event) {
+    if ( initial_load ) {
+      ws.send(JSON.stringify({cmd: 'tree'}));
+      wait_ws_answer();
+      initial_load = false;
+    }
+  };
+}
+
+var initial_file = location.hash.substr(1);
 function init() {
+  // WS server
+  init_ws();
+
+  // Code editor
   editor = ace.edit("editor", {
     theme: 'ace/theme/monokai',
     fontFamily: 'Roboto Mono',
@@ -467,14 +590,11 @@ function init() {
     readOnly: true,
     autoScrollEditorIntoView: true
   });
-  
-  tree(function() {
-    document.querySelector('#files i[data-file="' + location.hash.substr(1) + '"]').click();
-  });
+
   listeners();
   sync_save();
-  ping();
   search();
+  new_file();
 }
 
 init();

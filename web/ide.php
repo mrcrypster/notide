@@ -9,7 +9,7 @@ if ( strlen($key) == 48 ) {
 else {
   if ( $key == 'i' ) {
     header('Content-type: text/plain');
-    readfile(__DIR__ . '/notide.py');
+    readfile(__DIR__ . '/../local/client2.py');
   }
   else if ($key) {
     header('Location: /');

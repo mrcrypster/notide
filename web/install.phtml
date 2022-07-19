@@ -9,28 +9,32 @@
   
   <h1>not<b>IDE</b></h1>
   <p class="description">edit / local | server / code online</p>
-  
-  <div id="public">
-    <p>Open terminal and launch NotIDE client in folder with your code:</p>
-    <pre><code>cd /path/to/code && <b>python3 <(curl -s https://notide.cc/i)</b></code></pre>
 
-    <p>Open generated unique link and edit your files in the browser:</p>
+  <div class="features">
+    <ul>
+      <li>Create/rename/move/delete files/folders
+      <li>Drag-and-drop files upload
+      <li>Syntax highlight using <a href="https://ace.c9.io/">Ace editor</a>
+      <li>Autosaving changes
+      <li>Search files by name
+      <li>Python-based client local client
+      <li>Cross-files undo manager
+      <li>Cursor position/scroll depth autosave
+    </ul>
   </div>
   
-  <img src="/demo.png" class="demo"/>
-  
-  <div class="features">
-  <ul>
-    <li>Autosave while editing
-    <li>Syntax highlight using <a href="https://ace.c9.io/">ace editor</a>
-    <li>Create new files
-    <li><code>double click</code> file name to move/rename
-    <li><code>Shift + single click</code> file/dir name to remove
-    <li>Search files by name
-    <li><a href="https://github.com/mrcrypster/notide/blob/main/notide.py">Python-based client</a> with automatic reconnection
-    <li>Cross-files undo manager
-    <li>Cursor position autosave
-  </ul>
+  <div id="public">
+    <p>Launch NotIDE client in folder with your code:</p>
+    <pre><code>cd /path/to/code && <b>python3 <(curl -s https://notide.cc/i)</b></code></pre>
+    
+    <p>Python client uses websockets for best performance, so don't forget to install it:</p>
+    <pre class="small"><code>pip install websockets</code></pre>
+
+    <p>Open generated link:</p>
+    <img src="/example-terminal.png" class="demo"/>
+
+    <p>Edit your code:</p>
+    <img src="/demo.png" class="demo"/>
   </div>
   
   <p class="foot">
