@@ -13,6 +13,7 @@ Browser-based code editor created to edit local or server files online.
 - Python-based client local client
 - Cross-files undo manager
 - Cursor position/scroll depth autosave
+- Multiple projects editing
 
 ## Usage
 ```bash

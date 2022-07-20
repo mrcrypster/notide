@@ -1,4 +1,4 @@
-import asyncio, websockets, sys, os, glob, json, time, requests, string, random, shutil
+import asyncio, websockets, sys, os, glob, json, time, requests, string, random, shutil, platform
 
 
 
@@ -92,10 +92,13 @@ def move(dir, file, new):
   return {'new': new, 'tree': tree(dir)}
 
 
+def project(dir):
+  return platform.node() + ' - ' + dir
+
 
 # Handlers
 local_handlers = {
-  'tree':      lambda context: {'tree': tree( dir )},
+  'tree':      lambda context: {'tree': tree( dir ), 'project': project( dir )},
   'new':       lambda context: {'new_file': {'name': create(dir, context['name']), 'tree': tree( dir )}},
   'open':      lambda context: {'open': {'name': context['name'], 'code': code( dir, context['name'] )}},
   'open':      lambda context: {'open': code( dir, context['name'] )},

@@ -129,6 +129,32 @@ let server_handlers = {
     server_handlers.tree(data.tree, function() {
       document.querySelector('#files i[data-file="' + file + '"]').click();
     });
+  },
+
+  project: function(name) {
+    let projects = {};
+    if ( localStorage.getItem('projects') ) {
+      projects = JSON.parse( localStorage.getItem('projects') );
+    }
+
+    projects[name] = location.pathname.substr(1);
+    localStorage.setItem('projects', JSON.stringify(projects));
+
+    let select = '';
+    let total = 0;
+    for ( let k in projects ) {
+      total++;
+      select += '<option ' + (location.pathname.substr(1) == projects[k] ? 'selected' : '') +
+                ' value="' + projects[k] + '">' + k + '</option>';
+    }
+
+    if ( total > 1 ) {
+      document.querySelector('#projects').innerHTML = select;
+      document.querySelector('#projects').classList.add('on');
+      document.querySelector('#projects').addEventListener('change', function() {
+        location = '/' + this.value;
+      })
+    }
   }
 }
 

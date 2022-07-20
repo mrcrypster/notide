@@ -1,5 +1,5 @@
 body                        { margin: 0; border: 0; padding: 0; font-family: 'Roboto Mono';
-                              font-size: 12px; background: #272822; }
+                              font-size: 12px; background: #202020; }
 
 
 .public                     { background: #fff; font-family: 'Arial'; }
@@ -60,7 +60,13 @@ a:hover                     { color: #FF4136; }
 #search input:focus         { cursor: text; }
 
 
-#files                      { position: fixed; top: 42px; width: 250px; left: 0; bottom: 0; border: 0;
+#projects                   { position: fixed; bottom: 0; left: 0; z-index: 2; width: 250px; display: none;
+                              background: #202020; border: none; font-size: 10px; color: #666;
+                              padding: 4px; box-sizing: border-box; cursor: pointer; outline: none; }
+#projects:hover             { color: #888; }
+#projects.on                { display: block; }
+
+#files                      { position: fixed; top: 42px; width: 250px; left: 0; bottom: 20px; border: 0;
                               margin: 0; padding: 5px 0 0 0; background: #202020; list-style: none;
                               color: #F8F8F2; box-sizing: border-box; overflow: auto; }
 #files ul                   { margin: 0; padding: 0; list-style: none; display: none; }
